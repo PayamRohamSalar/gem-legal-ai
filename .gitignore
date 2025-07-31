@@ -1,0 +1,22 @@
+# Python virtual environments
+/venv/
+/env/
+/.venv/
+/legal-ai/
+/gem-legal/
+__pycache__/
+*.pyc
+
+# Generated data and large files
+# این پوشه‌ها حاوی داده‌های پردازش‌شده و حجیم هستند و نباید در گیت باشند
+/data/
+/models/
+
+# IDE and OS specific files
+.vscode/
+.idea/
+.DS_Store
+*.ipynb_checkpoints
+
+# Temporary files (like the Word lock file)
+~$*.docx
