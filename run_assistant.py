@@ -15,7 +15,7 @@ from src.generation.integrated_response_system import LegalResponseSystem, Respo
 # --- تنظیمات ---
 DB_PATH = "data/vector_db"
 COLLECTION_NAME = "legal_hybrid_v1"
-ACTIVE_LLM_KEY = "qwen"
+ACTIVE_LLM_KEY = "qwen"  # <-- اصلاح شد: از کلید کوتاه استفاده می‌کنیم
 
 async def main():
     """تابع اصلی برای اجرای کامل و یکپارچه دستیار حقوقی"""
@@ -32,7 +32,11 @@ async def main():
     response_system = LegalResponseSystem(default_model=ACTIVE_LLM_KEY)
     from src.generation.llm_manager import create_model_configs
     response_system.llm_manager.configs = create_model_configs()
-    response_system.llm_manager.set_active_model(ACTIVE_LLM_KEY)
+    
+    # بررسی و تنظیم مدل فعال
+    if not response_system.llm_manager.set_active_model(ACTIVE_LLM_KEY):
+        print(f"❌ ERROR: Could not set active model to '{ACTIVE_LLM_KEY}'. Please check configs.")
+        return
     print("✅ Response System is ready.")
 
     # === طرح سوال و اجرای کامل خط لوله ===
@@ -45,11 +49,11 @@ async def main():
         print("❌ No relevant documents found.")
         return
 
-    # ۲. نمایش متن کامل chunkهای بازیابی شده (بخش اضافه شده)
+    # ۲. نمایش متن کامل chunkهای بازیابی شده
     print("\n--- Inspecting FULL Retrieved Context ---")
     print("==============================")
     for i, ctx in enumerate(contexts, 1):
-        print(f"--- CHUNK #{i} | Score: {ctx['final_score']:.3f} | Source: {ctx['metadata'].get('document_title', 'N/A')} ---")
+        print(f"--- CHUNK #{i} | Score: {ctx.get('final_score', 0):.3f} | Source: {ctx['metadata'].get('document_title', 'N/A')} ---")
         print(ctx['text'])
         print("-" * 25)
     print("==============================")
