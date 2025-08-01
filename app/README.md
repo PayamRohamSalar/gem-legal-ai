@@ -1,1 +1,0 @@
-This folder contains the application code (backend and frontend).

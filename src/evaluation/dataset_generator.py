@@ -80,7 +80,7 @@ class LegalDatasetGenerator:
                 ],
                 QuestionDifficulty.INTERMEDIATE: [
                     {
-                        "template": "تفاوت وظایف استاد تمام با {rank} در حوزه پژوهش چیست؟",
+                        "template": "تفاوت وظایف استاد تمام با {subject} در حوزه پژوهش چیست؟",
                         "subjects": ["استاد دانشیار", "استادیار", "مربی"],
                         "expected_pattern": "مطابق جدول رتبه‌بندی",
                         "evaluation_criteria": ["مقایسه دقیق", "ذکر تفاوت‌ها"]
@@ -105,7 +105,7 @@ class LegalDatasetGenerator:
                         "evaluation_criteria": ["دقت تعریف", "ذکر منبع قانونی"]
                     },
                     {
-                        "template": "مزایای {benefit_type} شرکت‌های دانش‌بنیان کدامند؟",
+                        "template": "مزایای {subject} شرکت‌های دانش‌بنیان کدامند؟",
                         "subjects": ["مالیاتی", "اعتباری", "صادراتی", "گمرکی"],
                         "expected_pattern": "مواد 5-8 قانون حمایت",
                         "evaluation_criteria": ["کامل بودن لیست", "ذکر درصد معافیت‌ها"]
@@ -113,7 +113,7 @@ class LegalDatasetGenerator:
                 ],
                 QuestionDifficulty.INTERMEDIATE: [
                     {
-                        "template": "شرایط احراز و نگهداری عنوان دانش‌بنیان برای شرکت {company_type} چیست؟",
+                        "template": "شرایط احراز و نگهداری عنوان دانش‌بنیان برای شرکت {subject} چیست؟",
                         "subjects": ["نرم‌افزاری", "بیوتکنولوژی", "نانو", "انرژی"],
                         "expected_pattern": "آیین‌نامه احراز و ارزیابی",
                         "evaluation_criteria": ["ذکر معیارهای کمی", "شرایط نگهداری"]
@@ -408,15 +408,22 @@ class LegalDatasetGenerator:
         return questions
     
     def save_dataset(self, questions: List[TestQuestion], filename: str = None) -> str:
-        """ذخیره dataset در فایل JSON"""
-        
+        """ذخیره dataset در فایل JSON (نسخه اصلاح شده)"""
+
         if filename is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"legal_test_dataset_{timestamp}.json"
-        
+
         filepath = self.output_dir / filename
-        
-        # تبدیل به dictionary
+
+        # تبدیل Enum ها به رشته قبل از ذخیره‌سازی
+        questions_as_dicts = []
+        for q in questions:
+            q_dict = asdict(q)
+            q_dict['category'] = q_dict['category'].value
+            q_dict['difficulty'] = q_dict['difficulty'].value
+            questions_as_dicts.append(q_dict)
+
         dataset_dict = {
             "metadata": {
                 "total_questions": len(questions),
@@ -424,15 +431,15 @@ class LegalDatasetGenerator:
                 "difficulty_distribution": self._analyze_difficulty_distribution(questions),
                 "category_distribution": self._analyze_category_distribution(questions)
             },
-            "questions": [asdict(q) for q in questions]
+            "questions": questions_as_dicts
         }
-        
+
         # ذخیره فایل
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(dataset_dict, f, ensure_ascii=False, indent=2)
-        
+
         logger.info(f"Dataset ذخیره شد: {filepath}")
-        
+
         return str(filepath)
     
     def _analyze_difficulty_distribution(self, questions: List[TestQuestion]) -> Dict[str, int]:
